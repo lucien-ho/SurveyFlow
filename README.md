@@ -30,6 +30,3 @@ To run `SurveyFlow`, you need to set up a Conda environment with the required de
 Run the pipeline using the following command:
 ```bash
 python surveyFlow.py --r1 <R1.fastq.gz> --r2 <R2.fastq.gz> --threads <threads> --kmer <kmer_size> --prefix <output_prefix> --ploidy <ploidy> --size <genome_size>
-
-
-
