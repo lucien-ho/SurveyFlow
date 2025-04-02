@@ -114,6 +114,13 @@ def check_software():
     else:
         logger.info("All required tools are installed.")
 
+def setup_output_directory(outdir):
+    """创建输出目录，如果不存在则创建"""
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)
+        logger.info(f"Created output directory: {outdir}")
+    return outdir
+
 def main():
     """主函数"""
     parser = argparse.ArgumentParser(description="Genome analysis pipeline with fastp, Jellyfish, GenomeScope, and Smudgeplot.")
@@ -124,23 +131,31 @@ def main():
     parser.add_argument("--prefix", default="output", help="Prefix for output files (default: output)")
     parser.add_argument("--ploidy", type=int, default=2, help="Ploidy (default: 2)")
     parser.add_argument("--size", required=True, help="Genome size")
+    parser.add_argument("--outdir", default=".", help="Output directory (default: current directory)")
     args = parser.parse_args()
 
     check_software()
 
-    # 文件路径
-    trimmed_r1 = f"{args.prefix}_trimmed_R1.fastq.gz"
-    trimmed_r2 = f"{args.prefix}_trimmed_R2.fastq.gz"
-    kmer_jf = f"{args.prefix}.jf"
-    kmer_histo = f"{args.prefix}.histo"
+    # 设置输出目录并调整文件路径
+    outdir = setup_output_directory(args.outdir)
+    trimmed_r1 = os.path.join(outdir, f"{args.prefix}_trimmed_R1.fastq.gz")
+    trimmed_r2 = os.path.join(outdir, f"{args.prefix}_trimmed_R2.fastq.gz")
+    kmer_jf = os.path.join(outdir, f"{args.prefix}.jf")
+    kmer_histo = os.path.join(outdir, f"{args.prefix}.histo")
+    prefix_with_path = os.path.join(outdir, args.prefix)
+
+    # 更新日志文件路径到输出目录
+    for handler in logger.handlers:
+        if isinstance(handler, logging.FileHandler):
+            handler.baseFilename = os.path.join(outdir, os.path.basename(handler.baseFilename))
 
     # 运行流程
     try:
-        fastp_quality_control(args.r1, args.r2, trimmed_r1, trimmed_r2, args.prefix)
+        fastp_quality_control(args.r1, args.r2, trimmed_r1, trimmed_r2, prefix_with_path)
         jellyfish_count(trimmed_r1, trimmed_r2, kmer_jf, args.threads, args.kmer, args.size)
         jellyfish_histo(kmer_jf, kmer_histo, args.threads)
         genomescope2(kmer_histo, args.prefix, args.threads, args.kmer, args.ploidy)
-        smudgeplot_analysis(kmer_histo, kmer_jf, args.prefix, args.kmer)
+        smudgeplot_analysis(kmer_histo, kmer_jf, prefix_with_path, args.kmer)
         logger.info("Genome survey pipeline completed successfully!")
     except Exception as e:
         logger.error(f"Pipeline failed: {str(e)}")
