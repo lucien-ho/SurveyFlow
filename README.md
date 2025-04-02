@@ -18,7 +18,7 @@ To run `SurveyFlow`, you need to set up a Conda environment with the required de
    conda install -c conda-forge mamba
 2. **Create the environment**
    ```bash
-   mamba create -n surveyflow python=3.9 fastp jellyfish "r-base>=4.1,<4.2" r-ggplot2 r-argparse genomescope smudgeplot -c bioconda -c conda-forge -y
+   mamba create -n surveyflow python=3.9 fastp jellyfish "r-base>=4.1,<4.2" r-ggplot2 r-argparse genomescope2 smudgeplot -c bioconda -c conda-forge -y
 3. **Activate the environment**
    ```bash
    conda activate surveyflow
